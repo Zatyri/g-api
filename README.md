@@ -1,2 +1,3 @@
-# g-api
- Backend for g-app
+Backend server for g-app
+Server is in development
+
