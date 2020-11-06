@@ -20,6 +20,11 @@ const schema = new mongoose.Schema({
     type: Number,
     require: true,
   },
+  passwordHash: {
+    type: String,
+    require: true,
+    minlength: 8
+  }
 });
 
 module.exports = mongoose.model("User", schema);
