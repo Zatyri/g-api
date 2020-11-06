@@ -28,6 +28,9 @@ const typeDefs = gql`
       store: Int! 
       password: String!     
     ): User
+    deleteUser(
+      username: String!
+    ): User
     login(
       username: String!
       password: String!

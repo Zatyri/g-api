@@ -1,18 +1,27 @@
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const logger = require("../middleware/logger");
 
 const User = require("../models/user");
+const { AuthenticationError } = require("apollo-server");
 
 const resolvers = {
   Query: {
     allUsers: () => User.find({}),
     getUserById: (_, args) => User.findOne({ id: args.id }),
     getUserByUsername: (_, args) => User.findOne({ username: args.username }),
+    me: (_, __, context) => context.currentUser,
   },
 
   Mutation: {
-    addUser: async (_, args) => {
+    addUser: async (_, args, context) => {
+      const currentUser = context.currentUser;
+
+      if (!currentUser.type === "admin") {
+        throw new AuthenticationError("not authenticated");
+      }
+
       const saltRounds = 10;
       const passwordHash = await bcrypt.hash(args.password, saltRounds);
 
@@ -22,8 +31,27 @@ const resolvers = {
         await user.save();
       } catch (error) {
         logger(error.message);
+        throw new Error(error.message);
       }
       return user;
+    },
+    deleteUser: async (_, args, context) => {
+      const currentUser = context.currentUser;
+
+      if (!currentUser.type === "admin") {
+        throw new AuthenticationError("not authenticated");
+      }
+
+      const userToDelete = await User.findOne({ username: args.username });
+
+      try {
+        await userToDelete.deleteOne();
+      } catch (error) {
+        logger(error.message);
+        throw new Error(error.message);
+      }
+
+      return userToDelete;
     },
     login: async (_, args) => {
       const user = await User.findOne({ username: args.username });
@@ -45,7 +73,7 @@ const resolvers = {
           id: user._id,
         };
 
-        const token = jwt.sign(userForToken, process.env.SECRET);
+        const token = jwt.sign(userForToken, process.env.JWT_SECRET);
 
         return { value: token };
       } catch (error) {
