@@ -28,8 +28,15 @@ const typeDefs = gql`
       store: Int! 
       password: String!     
     ): User
+    updateUser(
+      id: ID!
+      name: String!
+      type: String!
+      store: Int!
+    ): User
     deleteUser(
-      username: String!
+      id: ID!
+      store: Int!
     ): User
     login(
       username: String!
