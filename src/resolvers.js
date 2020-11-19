@@ -8,8 +8,7 @@ const User = require('../models/user');
 const Operator = require('../models/operator');
 const Subscription = require('../models/subscription');
 const { AuthenticationError } = require('apollo-server');
-const subscription = require('../models/subscription');
-const { findBreakingChanges } = require('graphql');
+
 
 const resolvers = {
   Query: {
@@ -19,7 +18,10 @@ const resolvers = {
     me: (_, __, context) => context.currentUser,
     allOperators: () => Operator.find({}),
     allSubscriptions: () => Subscription.find({}).populate('operator'),
+    allSubscriptionsWithOffer: () => Subscription.find({hasOffer: true}).populate('operator'),
+    allActiveSubscriptions: () => Subscription.find({active: true}).populate('operator'),
     getSubscriptionById: (_, args) => Subscription.findById(args.id),
+    getSubscriptionByOperatorId: (_, args) => Subscription.find({operator: args.id})    
   },
 
   Mutation: {
@@ -188,7 +190,8 @@ const resolvers = {
           args.id,
           { ...args },
           { new: true }
-        );
+        ).populate('operator');
+          
         return response;
       } catch (error) {
         logger(error.message);
@@ -203,7 +206,7 @@ const resolvers = {
         throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
       }
       try {
-        const deletedSubscription = await Subscription.findOneAndRemove(
+        const deletedSubscription = await Subscription.findByIdAndRemove(
           args.id
         );
         return deletedSubscription;
@@ -219,13 +222,14 @@ const resolvers = {
       if (currentUser.type === 'store') {
         throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
       }
+      console.log(args);
 
       try {
         const subscription = await Subscription.findByIdAndUpdate(
           args.id,
           { ...args, hasOffer: true },
           { new: true }
-        );
+        ).populate('operator');
         return subscription;
       } catch (error) {
         logger(error.message);

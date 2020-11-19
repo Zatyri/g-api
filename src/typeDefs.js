@@ -19,16 +19,20 @@ const typeDefs = gql`
     name: String!
     talk: String!
     sms: String!
-    speed: Int!
+    speed: String!
     unlimited: Boolean!
     eu: Int!
     price: String!
     hasOffer: Boolean!
+    active: Boolean!
     offer: String
+    offerLength: Int
+    bindingOffer: Boolean
     offerValue: Int
-    oneTimeDiscount: String
+    oneTimeDiscount: Int
     equivelentSub: [Subscription]
     benefits: [String]
+    
     id: ID!
   }
 
@@ -43,7 +47,10 @@ const typeDefs = gql`
     me: User
     allOperators: [Operator!]!
     allSubscriptions: [Subscription!]!
+    allSubscriptionsWithOffer: [Subscription]!
+    allActiveSubscriptions: [Subscription]!
     getSubscriptionById(id: ID!): Subscription!
+    getSubscriptionByOperatorId(id: ID!): [Subscription]!
   }
 
   type Mutation {
@@ -63,10 +70,11 @@ const typeDefs = gql`
       name: String!
       talk: String!
       sms: String!
-      speed: Int!
+      speed: String!
       unlimited: Boolean!
       eu: Int!
       price: String!
+      active: Boolean!
       equivelentSub: [ID]
     ): Subscription
     modifySubscription(
@@ -75,18 +83,21 @@ const typeDefs = gql`
       name: String
       talk: String
       sms: String
-      speed: Int
+      speed: String
       unlimited: Boolean
       eu: Int
       price: String
+      active: Boolean
       equivelentSub: [ID]
       ): Subscription
     deleteSubscription(id: ID!): Subscription
     addOffer(
       id: ID!
       offer: String!
+      offerLength: Int
+      bindingOffer: Boolean
       offerValue: Int
-      oneTimeDiscount: String
+      oneTimeDiscount: Int
     ): Subscription    
     removeOffer(id: ID!): Subscription
   }

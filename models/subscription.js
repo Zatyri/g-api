@@ -15,7 +15,7 @@ const schema = new mongoose.Schema({
     required: true,
   },
   speed: {
-    type: Number,
+    type: String,
     required: true,
   },
   unlimited: {
@@ -30,6 +30,10 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  active: {
+    type: Boolean,
+    required: true
+  },
   hasOffer: {
     type: Boolean,
     required: true,
@@ -37,13 +41,19 @@ const schema = new mongoose.Schema({
   offer: {
     type: String,
   },
+  offerLength: {
+    type: Number
+  },
+  bindingOffer: {
+    type: Boolean
+  },
   offerValue: {
     type: Number,
     min: 1,
     max: 5
   },
   oneTimeDiscount: {
-    type: String,
+    type: Number,
   },
   operator: {
     type: mongoose.Schema.Types.ObjectId,
