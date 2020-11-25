@@ -119,6 +119,7 @@ const resolvers = {
       return userToDelete;
     },
     login: async (_, args) => {
+      
       const user = await User.findOne({ username: args.username });
       const correctPassword =
         user === null

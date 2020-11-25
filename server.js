@@ -1,13 +1,16 @@
-require("dotenv").config();
-const { ApolloServer } = require("apollo-server");
-const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
+require('dotenv').config();
+const express = require('express');
+const { ApolloServer } = require('apollo-server-express');
 
-const typeDefs = require("./src/typeDefs");
-const resolvers = require("./src/resolvers");
-const logger = require("./middleware/logger");
+const cors = require('cors');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
-const User = require("./models/user");
+const typeDefs = require('./src/typeDefs');
+const resolvers = require('./src/resolvers');
+const logger = require('./middleware/logger');
+
+const User = require('./models/user');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -21,7 +24,87 @@ const connectDB = async () => {
       useFindAndModify: false,
       useCreateIndex: true,
     });
-    logger("connected to MongoDB");
+    logger('connected to MongoDB');
+  } catch (error) {
+    logger(error.message);
+  }
+};
+connectDB();
+const corsOptions = {
+  origin: 'http://localhost:4000',
+  credentials: true
+}
+
+const startServer = async () => {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,    
+    context: async ({ req }) => {
+      const auth = req ? req.headers.authorization : null;
+      if (auth && auth.toLowerCase().startsWith('bearer ')) {
+        const decodedToken = jwt.verify(
+          auth.substring(7),
+          process.env.JWT_SECRET
+        );
+        const currentUser = await User.findById(decodedToken.id);
+        return { currentUser };
+      }
+    },
+  });
+
+  const app = express()
+  
+  app.use(express.static('build'))
+
+ 
+  // app.use(cors({origin: 'http://localhost:4000', credentials: true}))
+
+  server.applyMiddleware({ app });
+
+  const PORT = process.env.PORT || 4000;
+
+  try {
+    await app.listen(PORT, () =>
+    console.log(`Server ready at http://localhost:4000${server.graphqlPath}`))
+  } catch (error) {
+    logger(error.message);
+  }
+};
+startServer();
+
+/*
+require('dotenv').config();
+const express = require('express');
+const { ApolloServer } = require('apollo-server');
+
+const cors = require('cors');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+
+const typeDefs = require('./src/typeDefs');
+const resolvers = require('./src/resolvers');
+const logger = require('./middleware/logger');
+
+const User = require('./models/user');
+
+const MONGODB_URI = process.env.MONGODB_URI;
+
+logger(`connecting to ${MONGODB_URI}`);
+
+
+const app = express();
+app.use(cors());
+app.use(express.static('build'));
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+      useCreateIndex: true,
+    });
+    logger('connected to MongoDB');
   } catch (error) {
     logger(error.message);
   }
@@ -34,13 +117,19 @@ const startServer = async () => {
     resolvers,
     context: async ({ req }) => {
       const auth = req ? req.headers.authorization : null;
-      if (auth && auth.toLowerCase().startsWith("bearer ")) {
-        const decodedToken = jwt.verify(auth.substring(7), process.env.JWT_SECRET);
+      if (auth && auth.toLowerCase().startsWith('bearer ')) {
+        const decodedToken = jwt.verify(
+          auth.substring(7),
+          process.env.JWT_SECRET
+        );
         const currentUser = await User.findById(decodedToken.id);
         return { currentUser };
       }
     },
   });
+
+  // server.applyMiddleware({ app });
+
   try {
     const { url } = await server.listen();
     logger(`Server running at ${url}`);
@@ -49,3 +138,4 @@ const startServer = async () => {
   }
 };
 startServer();
+*/
