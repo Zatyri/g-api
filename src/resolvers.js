@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const logger = require('../middleware/logger');
 var ObjectId = require('mongodb').ObjectID;
+const passport = require('passport')
 
 const User = require('../models/user');
 const Operator = require('../models/operator');
