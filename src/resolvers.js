@@ -3,29 +3,63 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const logger = require('../middleware/logger');
 var ObjectId = require('mongodb').ObjectID;
-const passport = require('passport')
+const passport = require('passport');
 
 const User = require('../models/user');
 const Operator = require('../models/operator');
 const Subscription = require('../models/subscription');
 const { AuthenticationError } = require('apollo-server');
 
+const adminAccess = ['admin'];
+const storeAdminAccess = ['admin', 'storeadmin'];
+const userAccess = ['admin', 'storeadmin', 'user'];
 
 const resolvers = {
   Query: {
-    allUsers: () => User.find({}),
-    getUserById: (_, args) => User.findOne({ _id: ObjectId(args.id) }),
-    getUserByUsername: (_, args) => User.findOne({ username: args.username }),
-    me: (_, __, context) => context.currentUser,
-    allOperators: () => Operator.find({}),
-    allSubscriptions: () => Subscription.find({}).populate('operator'),
-    allSubscriptionsWithOffer: (_,__,context) => Subscription.find({hasOffer: true}).populate('operator'),
-    allActiveSubscriptions: () => Subscription.find({active: true}).populate('operator'),
-    getSubscriptionById: (_, args) => Subscription.findById(args.id),
-    getSubscriptionByOperatorId: (_, args) => Subscription.find({operator: args.id})    
+    //allUsers: () => User.find({}),
+    //getUserById: (_, args) => User.findOne({ _id: ObjectId(args.id) }),
+    //getUserByUsername: (_, args) => User.findOne({ username: args.username }),
+    //me: (_, __, context) => context.currentUser,
+    allOperators: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return Operator.find({});
+      }
+      return null;
+    },
+    allSubscriptions: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return Subscription.find({}).populate('operator');
+      }
+      return null;
+    },
+    allSubscriptionsWithOffer: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return Subscription.find({ hasOffer: true }).populate('operator');
+      }
+      return null;
+    },
+    allActiveSubscriptions: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return Subscription.find({ active: true }).populate('operator');
+      }
+      return null;
+    },
+    getSubscriptionById: (_, args, context) => {
+      if (userAccess.includes(context.role)) {
+        return Subscription.findById(args.id);
+      }
+      return null;
+    },
+    getSubscriptionByOperatorId: (_, args, context) => {
+      if (userAccess.includes(context.role)) {
+        return Subscription.find({ operator: args.id });
+      }
+      return null;
+    },
   },
 
   Mutation: {
+    /*
     addUser: async (_, args, context) => {
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
@@ -56,7 +90,9 @@ const resolvers = {
         throw new Error(error.message);
       }
       return user;
-    },
+    }    
+    ,
+   
     updateUser: async (_, args, context) => {
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
@@ -120,7 +156,6 @@ const resolvers = {
       return userToDelete;
     },
     login: async (_, args) => {
-      
       const user = await User.findOne({ username: args.username });
       const correctPassword =
         user === null
@@ -148,6 +183,7 @@ const resolvers = {
         throw new AuthenticationError(error.message);
       }
     },
+    */
     addOperator: async (_, args) => {
       // not meant to be implemented in frontend
       const operator = new Operator({ ...args });
@@ -160,10 +196,15 @@ const resolvers = {
       return operator;
     },
     addSubscription: async (_, args, context) => {
+      /*
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
       });
       if (!currentUser.type === 'admin') {
+        throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
+      }
+      */
+      if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
       }
       const subscription = new Subscription({ ...args, hasOffer: false });
@@ -180,20 +221,24 @@ const resolvers = {
       }
     },
     modifySubscription: async (_, args, context) => {
+      /*
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
       });
       if (!currentUser.type === 'admin') {
         throw new AuthenticationError('Ei oikeuksia muokata liittymiä');
       }
-
+*/
+      if (!adminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia muokata liittymiä');
+      }
       try {
         const response = await Subscription.findByIdAndUpdate(
           args.id,
           { ...args },
           { new: true }
         ).populate('operator');
-          
+
         return response;
       } catch (error) {
         logger(error.message);
@@ -201,10 +246,15 @@ const resolvers = {
       }
     },
     deleteSubscription: async (_, args, context) => {
+      /*
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
       });
       if (!currentUser.type === 'admin') {
+        throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
+      }
+*/
+      if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
       }
       try {
@@ -218,13 +268,17 @@ const resolvers = {
       }
     },
     addOffer: async (_, args, context) => {
+      /*
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
       });
       if (currentUser.type === 'store') {
         throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
       }
-      console.log(args);
+      */
+      if (!storeAdminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
+      }
 
       try {
         const subscription = await Subscription.findByIdAndUpdate(
@@ -239,10 +293,15 @@ const resolvers = {
       }
     },
     removeOffer: async (_, args, context) => {
+      /*
       const currentUser = await User.findOne({
         _id: ObjectId(context.currentUser.id),
       });
       if (currentUser.type === 'store') {
+        throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
+      }
+      */
+      if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
       }
       try {
