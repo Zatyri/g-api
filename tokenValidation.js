@@ -10,7 +10,7 @@ const options = {
   clientID: config.credentials.clientID,
   audience: config.credentials.audience,
   scope: config.resource.scope,
-  applications: config.allowed_applications.applications,
+  applications: config.resource.applications,
   tenant: config.credentials.tenantID,
 };
 
@@ -60,7 +60,7 @@ const validateAudience = (decodedToken, comparableAudience) => {
   }
 };
 
-const validateIssuer = (decodedToken, comparableIssuer) => {
+const validateIssuer = (decodedToken, comparableIssuer) => {  
   if (decodedToken.iss !== comparableIssuer) {
     throw new AuthenticationError('Issuer is not valid');
   }
@@ -77,7 +77,7 @@ const validateTimestamp = (startTime, endTime) => {
   }
 };
 
-const validateApplication = (applicationId, comparableAppId) => {
+const validateApplication = (applicationId, comparableAppId) => {  
   if (!comparableAppId.find((appID) => appID === applicationId)) {
     throw new AuthenticationError(
       'Token not provided from autorized application'
