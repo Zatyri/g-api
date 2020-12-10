@@ -1,13 +1,9 @@
 require('dotenv').config();
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const logger = require('../middleware/logger');
-var ObjectId = require('mongodb').ObjectID;
-const passport = require('passport');
 
-const User = require('../models/user');
 const Operator = require('../models/operator');
 const Subscription = require('../models/subscription');
+const NetSubscription = require('../models/netSubscription')
 const { AuthenticationError } = require('apollo-server');
 
 const adminAccess = ['admin'];
@@ -16,10 +12,6 @@ const userAccess = ['admin', 'storeadmin', 'user'];
 
 const resolvers = {
   Query: {
-    //allUsers: () => User.find({}),
-    //getUserById: (_, args) => User.findOne({ _id: ObjectId(args.id) }),
-    //getUserByUsername: (_, args) => User.findOne({ username: args.username }),
-    //me: (_, __, context) => context.currentUser,
     allOperators: (_, __, context) => {
       if (userAccess.includes(context.role)) {
         return Operator.find({});
@@ -56,134 +48,27 @@ const resolvers = {
       }
       return null;
     },
+    allNetSubscriptions: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return NetSubscription.find({}).populate('operator');
+      }
+      return null;
+    },
+    allNetSubscriptionsWithOffer: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return NetSubscription.find({ hasOffer: true }).populate('operator');
+      }
+      return null;
+    },
+    allActiveNetSubscriptions: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return NetSubscription.find({ active: true }).populate('operator');
+      }
+      return null;
+    },
   },
 
   Mutation: {
-    /*
-    addUser: async (_, args, context) => {
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-
-      if (currentUser.type === 'store') {
-        throw new AuthenticationError('Ei oikeuksia lisätä käyttäjiä');
-      }
-      if (currentUser.type === 'storeAdmin') {
-        if (currentUser.store !== args.store) {
-          throw new AuthenticationError(
-            'Et voi lisätä käyttäjiä toiselle talolle'
-          );
-        } else if (args.type === 'admin') {
-          throw new AuthenticationError('Et voi luoda admineja');
-        }
-      }
-
-      const saltRounds = 10;
-      const passwordHash = await bcrypt.hash(args.password, saltRounds);
-
-      const user = new User({ ...args, passwordHash });
-
-      try {
-        await user.save();
-      } catch (error) {
-        logger(error.message);
-        throw new Error(error.message);
-      }
-      return user;
-    }    
-    ,
-   
-    updateUser: async (_, args, context) => {
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-
-      if (currentUser.type === 'store') {
-        throw new AuthenticationError('Ei oikeuksia muokata käyttäjiä');
-      }
-      if (currentUser.type === 'storeAdmin') {
-        if (!currentUser.store === args.store) {
-          throw new AuthenticationError(
-            'Et voi editoida toisen talon käyttäjiä'
-          );
-        } else if (args.type === 'admin') {
-          throw new AuthenticationError('Et voi muuttaa käyttäjiä admineiksi');
-        }
-      }
-
-      const userToUpdate = await User.findOne({ _id: ObjectId(args.id) });
-
-      if (!userToUpdate) {
-        throw new Error('User not found');
-      }
-
-      args.name && (userToUpdate.name = args.name);
-      args.type && (userToUpdate.type = args.type);
-      args.store && (userToUpdate.store = args.store);
-
-      try {
-        await userToUpdate.save();
-      } catch (error) {
-        logger(error.message);
-        throw new Error(error.message);
-      }
-      return userToUpdate;
-    },
-    deleteUser: async (_, args, context) => {
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-
-      if (currentUser.type === 'store') {
-        throw new AuthenticationError('Ei oikeuksia poistaa käyttäjiä');
-      }
-      if (
-        currentUser.type === 'storeAdmin' &&
-        currentUser.store !== args.store
-      ) {
-        throw new AuthenticationError('Et voi poistaa toisen talon käyttäjiä');
-      }
-
-      const userToDelete = await User.findOne({ _id: ObjectId(args.id) });
-
-      try {
-        await User.deleteOne({ _id: ObjectId(args.id) });
-      } catch (error) {
-        logger(error.message);
-        throw new Error(error.message);
-      }
-
-      return userToDelete;
-    },
-    login: async (_, args) => {
-      const user = await User.findOne({ username: args.username });
-      const correctPassword =
-        user === null
-          ? false
-          : await bcrypt.compare(args.password, user.passwordHash);
-
-      try {
-        if (!(user && correctPassword)) {
-          throw new Error('Invalid username or password');
-        }
-
-        const userForToken = {
-          username: user.username,
-          name: user.name,
-          type: user.type,
-          store: user.store,
-          id: user._id,
-        };
-
-        const token = jwt.sign(userForToken, process.env.JWT_SECRET);
-
-        return { value: token };
-      } catch (error) {
-        logger(error.message);
-        throw new AuthenticationError(error.message);
-      }
-    },
-    */
     addOperator: async (_, args) => {
       // not meant to be implemented in frontend
       const operator = new Operator({ ...args });
@@ -196,14 +81,6 @@ const resolvers = {
       return operator;
     },
     addSubscription: async (_, args, context) => {
-      /*
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-      if (!currentUser.type === 'admin') {
-        throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
-      }
-      */
       if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
       }
@@ -221,14 +98,6 @@ const resolvers = {
       }
     },
     modifySubscription: async (_, args, context) => {
-      /*
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-      if (!currentUser.type === 'admin') {
-        throw new AuthenticationError('Ei oikeuksia muokata liittymiä');
-      }
-*/
       if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia muokata liittymiä');
       }
@@ -246,14 +115,7 @@ const resolvers = {
       }
     },
     deleteSubscription: async (_, args, context) => {
-      /*
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-      if (!currentUser.type === 'admin') {
-        throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
-      }
-*/
+
       if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
       }
@@ -268,14 +130,7 @@ const resolvers = {
       }
     },
     addOffer: async (_, args, context) => {
-      /*
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-      if (currentUser.type === 'store') {
-        throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
-      }
-      */
+
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
       }
@@ -293,14 +148,7 @@ const resolvers = {
       }
     },
     removeOffer: async (_, args, context) => {
-      /*
-      const currentUser = await User.findOne({
-        _id: ObjectId(context.currentUser.id),
-      });
-      if (currentUser.type === 'store') {
-        throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
-      }
-      */
+
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
       }
@@ -319,6 +167,74 @@ const resolvers = {
       } catch (error) {
         logger(error.message);
         throw new Error('Virhe tarjouksen poistamisessa');
+      }
+    },
+    addNetSubscription: async (_, args, context) => {   
+      //!!!!!!!!!!!!!! change to adminaccess when testing done!   
+      if (!storeAdminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
+      }
+      const subscription = new NetSubscription({ ...args, hasOffer: false });
+
+      try {
+        await subscription.save();
+        const response = await NetSubscription.findOne({
+          name: args.name,
+        }).populate('operator');
+        return response;
+      } catch (error) {
+        logger(error.message);
+        throw new Error(error.message);
+      }
+    },
+    modifyNetSubscription: async (_, args, context) => {
+      if (!adminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia muokata liittymiä');
+      }
+      try {
+        const response = await NetSubscription.findByIdAndUpdate(
+          args.id,
+          { ...args },
+          { new: true }
+        ).populate('operator');
+
+        return response;
+      } catch (error) {
+        logger(error.message);
+        throw new Error(error.message);
+      }
+    },
+    deleteNetSubscription: async (_, args, context) => {
+
+      if (!adminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
+      }
+      try {
+        const deletedSubscription = await NetSubscription.findByIdAndRemove(
+          args.id
+        );
+        return deletedSubscription;
+      } catch (error) {
+        logger(error.message);
+        throw new Error(error.message);
+      }
+    },
+    addNetOffer: async (_, args, context) => {
+
+      if (!storeAdminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
+      }
+
+      try {
+        const subscription = await NetSubscription.findByIdAndUpdate(
+          args.id,
+          { ...args, hasOffer: true },
+          { new: true }
+        ).populate('operator');
+        return subscription;
+      } catch (error) {
+        logger(error.message);
+        throw new Error('Virhe tarjouksen tallennuksessa');
       }
     },
   },

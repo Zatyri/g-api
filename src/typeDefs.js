@@ -31,8 +31,25 @@ const typeDefs = gql`
     offerValue: Int
     oneTimeDiscount: Int
     equivelentSub: [Subscription]
-    benefits: [String]
-    
+    benefits: [String]    
+    id: ID!
+  }
+
+  type NetSubscription {
+    operator: Operator!
+    name: String!
+    type: String!    
+    speed: String!    
+    eu: Int
+    price: String!
+    hasOffer: Boolean!
+    active: Boolean!
+    offer: String
+    offerLength: Int
+    bindingOffer: Boolean
+    offerValue: Int
+    oneTimeDiscount: Int    
+    benefits: [String]    
     id: ID!
   }
 
@@ -51,6 +68,9 @@ const typeDefs = gql`
     allActiveSubscriptions: [Subscription]!
     getSubscriptionById(id: ID!): Subscription!
     getSubscriptionByOperatorId(id: ID!): [Subscription]!
+    allNetSubscriptions: [NetSubscription!]!
+    allNetSubscriptionsWithOffer: [NetSubscription]!
+    allActiveNetSubscriptions: [NetSubscription]!
   }
 
   type Mutation {
@@ -100,6 +120,34 @@ const typeDefs = gql`
       oneTimeDiscount: Int
     ): Subscription    
     removeOffer(id: ID!): Subscription
+    addNetSubscription(  
+      operator: String!
+      name: String!
+      type: String!      
+      speed: String!      
+      eu: Int
+      price: String!
+      active: Boolean!      
+    ): NetSubscription
+    modifyNetSubscription(
+      id: ID!
+      operator: String
+      name: String
+      type: String      
+      speed: String      
+      eu: Int
+      price: String
+      active: Boolean      
+      ): NetSubscription
+    deleteNetSubscription(id: ID!): NetSubscription
+    addNetOffer(
+      id: ID!
+      offer: String!
+      offerLength: Int
+      bindingOffer: Boolean
+      offerValue: Int
+      oneTimeDiscount: Int
+    ): NetSubscription    
   }
 `;
 
