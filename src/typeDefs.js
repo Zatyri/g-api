@@ -31,15 +31,15 @@ const typeDefs = gql`
     offerValue: Int
     oneTimeDiscount: Int
     equivelentSub: [Subscription]
-    benefits: [String]    
+    benefits: [String]
     id: ID!
   }
 
   type NetSubscription {
     operator: Operator!
     name: String!
-    type: String!    
-    speed: String!    
+    type: String!
+    speed: String!
     eu: Int
     price: String!
     hasOffer: Boolean!
@@ -48,8 +48,8 @@ const typeDefs = gql`
     offerLength: Int
     bindingOffer: Boolean
     offerValue: Int
-    oneTimeDiscount: Int    
-    benefits: [String]    
+    oneTimeDiscount: Int
+    benefits: [String]
     id: ID!
   }
 
@@ -109,7 +109,7 @@ const typeDefs = gql`
       price: String
       active: Boolean
       equivelentSub: [ID]
-      ): Subscription
+    ): Subscription
     deleteSubscription(id: ID!): Subscription
     addOffer(
       id: ID!
@@ -118,27 +118,27 @@ const typeDefs = gql`
       bindingOffer: Boolean
       offerValue: Int
       oneTimeDiscount: Int
-    ): Subscription    
+    ): Subscription
     removeOffer(id: ID!): Subscription
-    addNetSubscription(  
+    addNetSubscription(
       operator: String!
       name: String!
-      type: String!      
-      speed: String!      
+      type: String!
+      speed: String!
       eu: Int
       price: String!
-      active: Boolean!      
+      active: Boolean!
     ): NetSubscription
     modifyNetSubscription(
       id: ID!
       operator: String
       name: String
-      type: String      
-      speed: String      
+      type: String
+      speed: String
       eu: Int
       price: String
-      active: Boolean      
-      ): NetSubscription
+      active: Boolean
+    ): NetSubscription
     deleteNetSubscription(id: ID!): NetSubscription
     addNetOffer(
       id: ID!
@@ -147,7 +147,8 @@ const typeDefs = gql`
       bindingOffer: Boolean
       offerValue: Int
       oneTimeDiscount: Int
-    ): NetSubscription    
+    ): NetSubscription
+    removeNetOffer(id: ID!): NetSubscription
   }
 `;
 

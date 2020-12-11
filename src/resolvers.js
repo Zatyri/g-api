@@ -237,7 +237,30 @@ const resolvers = {
         throw new Error('Virhe tarjouksen tallennuksessa');
       }
     },
+    removeNetOffer: async (_, args, context) => {
+      if (!storeAdminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
+      }
+      try {     
+        
+        const subscription = await NetSubscription.findByIdAndUpdate(
+          args.id,
+          {
+            hasOffer: false,
+            offer: null,
+            offerValue: null,
+            oneTimeDiscount: null,
+          },
+          { new: true }
+        );
+        return subscription;
+      } catch (error) {
+        logger(error.message);
+        throw new Error('Virhe tarjouksen poistamisessa');
+      }
+    },
   },
+ 
 };
 
 module.exports = resolvers;
