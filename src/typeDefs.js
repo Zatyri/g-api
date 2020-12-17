@@ -53,6 +53,20 @@ const typeDefs = gql`
     id: ID!
   }
 
+  type ServiceAgreement {
+    type: String!
+    antiVirus: String!
+    antiVirusAmount: Int!
+    VPN: Boolean!
+    VPNAmount: Int!
+    cloud: String!
+    cloudLimit: String!
+    office365: Boolean!
+    support: Boolean!
+    remoteFix: Boolean!
+    id: ID!
+  }
+
   type Token {
     value: String
   }
@@ -71,6 +85,7 @@ const typeDefs = gql`
     allNetSubscriptions: [NetSubscription!]!
     allNetSubscriptionsWithOffer: [NetSubscription]!
     allActiveNetSubscriptions: [NetSubscription]!
+    allServiceAgreements: [ServiceAgreement]!
   }
 
   type Mutation {
@@ -149,6 +164,32 @@ const typeDefs = gql`
       oneTimeDiscount: Int
     ): NetSubscription
     removeNetOffer(id: ID!): NetSubscription
+    addServiceAgreement(
+      type: String!
+      antiVirus: String!
+      antiVirusAmount: Int!
+      VPN: Boolean!
+      VPNAmount: Int!
+      cloud: String!
+      cloudLimit: String!
+      office365: Boolean!
+      support: Boolean!
+      remoteFix: Boolean!
+    ) : ServiceAgreement
+    modifyServiceAgreement(
+      id: ID!
+      type: String
+      antiVirus: String
+      antiVirusAmount: Int
+      VPN: Boolean
+      VPNAmount: Int
+      cloud: String
+      cloudLimit: String
+      office365: Boolean
+      support: Boolean
+      remoteFix: Boolean
+    ) : ServiceAgreement
+    deleteServiceAgreement(id: ID!) : ServiceAgreement
   }
 `;
 

@@ -3,7 +3,8 @@ const logger = require('../middleware/logger');
 
 const Operator = require('../models/operator');
 const Subscription = require('../models/subscription');
-const NetSubscription = require('../models/netSubscription')
+const NetSubscription = require('../models/netSubscription');
+const ServiceAgreement = require('../models/serviceAgreement');
 const { AuthenticationError } = require('apollo-server');
 
 const adminAccess = ['admin'];
@@ -66,6 +67,12 @@ const resolvers = {
       }
       return null;
     },
+    allServiceAgreements: (_, __, context) => {
+      if (userAccess.includes(context.role)) {
+        return ServiceAgreement.find({});
+      }
+      return null;
+    },
   },
 
   Mutation: {
@@ -115,7 +122,6 @@ const resolvers = {
       }
     },
     deleteSubscription: async (_, args, context) => {
-
       if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
       }
@@ -130,7 +136,6 @@ const resolvers = {
       }
     },
     addOffer: async (_, args, context) => {
-
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
       }
@@ -148,7 +153,6 @@ const resolvers = {
       }
     },
     removeOffer: async (_, args, context) => {
-
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
       }
@@ -169,8 +173,8 @@ const resolvers = {
         throw new Error('Virhe tarjouksen poistamisessa');
       }
     },
-    addNetSubscription: async (_, args, context) => {   
-      //!!!!!!!!!!!!!! change to adminaccess when testing done!   
+    addNetSubscription: async (_, args, context) => {
+      //!!!!!!!!!!!!!! change to adminaccess when testing done!
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
       }
@@ -205,7 +209,6 @@ const resolvers = {
       }
     },
     deleteNetSubscription: async (_, args, context) => {
-
       if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa liittymiä');
       }
@@ -220,7 +223,6 @@ const resolvers = {
       }
     },
     addNetOffer: async (_, args, context) => {
-
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä tarjouksia');
       }
@@ -241,8 +243,7 @@ const resolvers = {
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
       }
-      try {     
-        
+      try {
         const subscription = await NetSubscription.findByIdAndUpdate(
           args.id,
           {
@@ -259,8 +260,61 @@ const resolvers = {
         throw new Error('Virhe tarjouksen poistamisessa');
       }
     },
+    addServiceAgreement: async (_, args, context) => {
+      // change to admin on production
+      if (!storeAdminAccess.includes(context.role)) {
+        throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
+      }
+      try {
+        const serviceAgreement = await new ServiceAgreement({ ...args });
+
+        await serviceAgreement.save();
+
+        const response = await ServiceAgreement.findOne({
+          type: args.type,
+        });
+
+        return response;
+      } catch (error) {
+        logger(error.message);
+        throw new Error('Virhe huolenpidon lisäyksessä');
+      }
+    },
+    modifyServiceAgreement: async (_, args, context) => {
+      if (!adminAccess.includes(context.role)) {
+        throw new AuthenticationError(
+          'Ei oikeuksia muokata huolenpito sopimuksia'
+        );
+      }
+      try {
+        const response = await ServiceAgreement.findByIdAndUpdate(
+          args.id,
+          { ...args },
+          { new: true }
+        );
+
+        return response;
+      } catch (error) {
+        logger(error.message);
+        throw new Error(error.message);
+      }
+    },
+    deleteServiceAgreement: async (_, args, context) => {
+      //change to admin access on deployment
+      if (!storeAdminAccess.includes(context.role)) {
+        throw new AuthenticationError(
+          'Ei oikeuksia poistaa huolenpito sopimuksia'
+        );
+      }
+      try {
+        const response = await ServiceAgreement.findByIdAndRemove(args.id);
+        return response;
+      } catch (error) {
+        logger(error.message);
+        throw new Error('Virhe huolenpidon poistamisessa');
+      }
+    },
   },
- 
 };
 
 module.exports = resolvers;
