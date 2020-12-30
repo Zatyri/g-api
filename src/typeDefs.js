@@ -55,6 +55,7 @@ const typeDefs = gql`
 
   type ServiceAgreement {
     type: String!
+    name: String!
     antiVirus: String!
     antiVirusAmount: Int!
     VPN: Boolean!
@@ -64,6 +65,8 @@ const typeDefs = gql`
     office365: Boolean!
     support: Boolean!
     remoteFix: Boolean!
+    length: Int!
+    price: String!
     id: ID!
   }
 
@@ -166,6 +169,7 @@ const typeDefs = gql`
     removeNetOffer(id: ID!): NetSubscription
     addServiceAgreement(
       type: String!
+      name: String!
       antiVirus: String!
       antiVirusAmount: Int!
       VPN: Boolean!
@@ -175,10 +179,13 @@ const typeDefs = gql`
       office365: Boolean!
       support: Boolean!
       remoteFix: Boolean!
+      length: Int!
+      price: String!
     ) : ServiceAgreement
     modifyServiceAgreement(
       id: ID!
       type: String
+      name: String
       antiVirus: String
       antiVirusAmount: Int
       VPN: Boolean
@@ -188,6 +195,8 @@ const typeDefs = gql`
       office365: Boolean
       support: Boolean
       remoteFix: Boolean
+      length: Int
+      price: String
     ) : ServiceAgreement
     deleteServiceAgreement(id: ID!) : ServiceAgreement
   }

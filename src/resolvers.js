@@ -261,6 +261,8 @@ const resolvers = {
       }
     },
     addServiceAgreement: async (_, args, context) => {
+      console.log(args);
+      
       // change to admin on production
       if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
@@ -281,12 +283,15 @@ const resolvers = {
       }
     },
     modifyServiceAgreement: async (_, args, context) => {
-      if (!adminAccess.includes(context.role)) {
+      // change to admin on production
+      if (!storeAdminAccess.includes(context.role)) {
         throw new AuthenticationError(
           'Ei oikeuksia muokata huolenpito sopimuksia'
         );
       }
       try {
+        console.log(args);
+        
         const response = await ServiceAgreement.findByIdAndUpdate(
           args.id,
           { ...args },

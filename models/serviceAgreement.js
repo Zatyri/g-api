@@ -6,11 +6,16 @@ const schema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   antiVirus: {
     type: String,
     required: true,
   },
-  AntiVirusAmount: {
+  antiVirusAmount: {
     type: Number,
     required: true,
   },
@@ -41,7 +46,15 @@ const schema = new mongoose.Schema({
   remoteFix: {
     type: Boolean,
     required: true
-  }  
+  },
+  length: {
+    type: Number,
+    required: true
+  },
+  price: {
+    type: String,
+    required: true
+  }
 });
 
 module.exports = mongoose.model('ServiceAgreement', schema);
