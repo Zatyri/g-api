@@ -3,9 +3,10 @@ const { AuthenticationError } = require('apollo-server');
 const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
 
+/*
 const config = require('./config.json');
 
-/*
+
 const options = {
   identityMetadata: `https://${config.metadata.authority}/${config.credentials.tenantID}/${config.metadata.version}/${config.metadata.discovery}`,
   issuer: `https://${config.metadata.authority}/${config.credentials.issuer}/${config.metadata.version}`,
