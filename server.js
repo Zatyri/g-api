@@ -1,3 +1,5 @@
+console.log('started');
+
 require('dotenv').config();
 const express = require('express');
 const { ApolloServer, AuthenticationError } = require('apollo-server-express');
@@ -64,7 +66,7 @@ const startServer = async () => {
 
   try {
     await app.listen(PORT, () =>
-      console.log(`Server ready at http://localhost:4000${server.graphqlPath}`)
+      console.log(`Server ready at http://localhost:${PORT}${server.graphqlPath}`)
     );
   } catch (error) {
     logger(error.message);
