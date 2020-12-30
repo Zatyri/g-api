@@ -2,7 +2,7 @@
   "name": "g-api",
   "version": "1.0.0",
   "description": "Backend for g-app",
-  "main": "server.js",
+  "main": "node server.js",
   "scripts": {
     "dev": "nodemon server.js"
   },
