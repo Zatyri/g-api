@@ -1,9 +1,11 @@
+require('dotenv').config();
 const { AuthenticationError } = require('apollo-server');
 const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
 
 const config = require('./config.json');
 
+/*
 const options = {
   identityMetadata: `https://${config.metadata.authority}/${config.credentials.tenantID}/${config.metadata.version}/${config.metadata.discovery}`,
   issuer: `https://${config.metadata.authority}/${config.credentials.issuer}/${config.metadata.version}`,
@@ -13,6 +15,21 @@ const options = {
   applications: config.resource.applications,
   tenant: config.credentials.tenantID,
 };
+*/
+
+const options = {
+  identityMetadata: `https://${process.env.AUTHOROTY}/${process.env.TENANT_ID}/${process.env.VERSION }/${process.env.DISCOVERY}`,
+  issuer: `https://${process.env.AUTHOROTY}/${process.env.ISSUER}/${process.env.VERSION}`,
+  clientID: process.env.CLIENT_ID,
+  audience: process.env.AUDIENCE,
+  scope: process.env.SCOPE,
+  applications: process.env.APPLICATIONS,
+  tenant: process.env.TENANT_ID,
+};
+
+
+
+
 
 const validateToken = async (token, key) => {
   try {
@@ -29,7 +46,7 @@ const fetchKey = async (url, keyId) => {
   let identityMetadata;
   try {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url);       
       identityMetadata = await res.json();
     } catch (error) {
       throw new AuthenticationError(
@@ -113,10 +130,10 @@ const autenticateToken = async (rawToken) => {
     if(!decodedToken) throw new AuthenticationError('No valid token provided')
     validateTimestamp(decodedToken.nbf, decodedToken.exp);
     validateACR(decodedToken.acr);
-    validateApplication(decodedToken.azp, options.applications);
+    validateApplication(decodedToken.azp, [options.applications]);
     validateAudience(decodedToken, options.audience);
     validateIssuer(decodedToken, options.issuer);
-    validateTenant(decodedToken.tid, options.tenant);
+    validateTenant(decodedToken.tid, [options.tenant]);
     validateScopes(decodedToken.scp, options.scope);
     const key = await fetchKey(
       options.identityMetadata,
