@@ -174,8 +174,8 @@ const resolvers = {
       }
     },
     addNetSubscription: async (_, args, context) => {
-      //!!!!!!!!!!!!!! change to adminaccess when testing done!
-      if (!storeAdminAccess.includes(context.role)) {
+     
+      if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia lisätä liittymiä');
       }
       const subscription = new NetSubscription({ ...args, hasOffer: false });
@@ -263,8 +263,8 @@ const resolvers = {
     addServiceAgreement: async (_, args, context) => {
       console.log(args);
       
-      // change to admin on production
-      if (!storeAdminAccess.includes(context.role)) {
+      
+      if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError('Ei oikeuksia poistaa tarjouksia');
       }
       try {
@@ -282,9 +282,8 @@ const resolvers = {
         throw new Error('Virhe huolenpidon lisäyksessä');
       }
     },
-    modifyServiceAgreement: async (_, args, context) => {
-      // change to admin on production
-      if (!storeAdminAccess.includes(context.role)) {
+    modifyServiceAgreement: async (_, args, context) => {     
+      if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError(
           'Ei oikeuksia muokata huolenpito sopimuksia'
         );
@@ -305,8 +304,8 @@ const resolvers = {
       }
     },
     deleteServiceAgreement: async (_, args, context) => {
-      //change to admin access on deployment
-      if (!storeAdminAccess.includes(context.role)) {
+      
+      if (!adminAccess.includes(context.role)) {
         throw new AuthenticationError(
           'Ei oikeuksia poistaa huolenpito sopimuksia'
         );
